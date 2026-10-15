@@ -3,7 +3,7 @@
    rete. Non intercetta nient'altro, non ha accesso ai dati (che stanno
    cifrati in IndexedDB) e non parla con nessun indirizzo esterno. */
 
-var CACHE = "san-giorgio-v2";
+var CACHE = "san-giorgio-d01c5b053a5a";
 
 /* Essenziali: senza questi l'app non parte, quindi se uno manca l'installazione
    deve fallire e vale la pena saperlo. */

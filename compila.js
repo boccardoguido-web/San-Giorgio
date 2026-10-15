@@ -37,5 +37,26 @@ fs.writeFileSync(B + "/app.js", babel.transformSync(sorgente, {
   compact: false,
 }).code);
 
+/* Marchia il service worker con l'impronta dei file serviti.
+   Senza questo l'app non si aggiorna mai: il service worker preferisce la
+   cache alla rete, e il browser lo sostituisce solo se sw.js stesso cambia.
+   Se resta identico, la versione nuova non arriva sul dispositivo. */
+const crypto = require("crypto");
+const impronta = crypto.createHash("sha256");
+["index.html", "app.css", "vendor.js", "app.js"].forEach(f => {
+  impronta.update(fs.readFileSync(B + "/" + f));
+});
+const ver = impronta.digest("hex").slice(0, 12);
+
+const sw = fs.readFileSync(B + "/sw.js", "utf8");
+const swNuovo = sw.replace(/var CACHE = "san-giorgio-[^"]*";/,
+  'var CACHE = "san-giorgio-' + ver + '";');
+if (swNuovo === sw && !sw.includes('san-giorgio-' + ver)) {
+  console.error("non riesco a marchiare sw.js: riga 'var CACHE' non trovata");
+  process.exit(1);
+}
+fs.writeFileSync(B + "/sw.js", swNuovo);
+
 const kb = p => (fs.statSync(p).size / 1024).toFixed(0) + "KB";
-console.log("vendor.js " + kb(B + "/vendor.js") + "  app.js " + kb(B + "/app.js"));
+console.log("vendor.js " + kb(B + "/vendor.js") + "  app.js " + kb(B + "/app.js")
+  + "  cache " + ver);

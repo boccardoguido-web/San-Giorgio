@@ -2066,7 +2066,27 @@ function Blocco(p) {
   var [pw2, setPw2] = useState("");
   var [err, setErr] = useState("");
   var [lav, setLav] = useState(false);
+  var [mostra, setMostra] = useState(false);
+  var [azzera, setAzzera] = useState(false);
+  var [conferma, setConferma] = useState("");
+  var [copiata, setCopiata] = useState(false);
   var nuova = p.modo === "crea";
+  function copia() {
+    if (!pw) return;
+    var fatto = function () {
+      setCopiata(true);
+      setTimeout(function () {
+        setCopiata(false);
+      }, 2500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(pw).then(fatto, function () {
+        setMostra(true);
+      });
+    } else {
+      setMostra(true);
+    }
+  }
   function invia(e) {
     e.preventDefault();
     setErr("");
@@ -2123,8 +2143,23 @@ function Blocco(p) {
   }, nuova ? "Scegli una passphrase. Protegge i dati sul dispositivo e non viene salvata da nessuna parte: se la perdi, l'archivio non è recuperabile." : "Inserisci la passphrase per aprire l'archivio."), /*#__PURE__*/React.createElement("form", {
     onSubmit: invia
   }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    name: "archivio",
+    value: "San Giorgio",
+    readOnly: true,
+    autoComplete: "username",
+    tabIndex: -1,
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      left: -9999,
+      width: 1,
+      height: 1,
+      opacity: 0
+    }
+  }), /*#__PURE__*/React.createElement("input", {
     className: "inp",
-    type: "password",
+    type: mostra ? "text" : "password",
     value: pw,
     autoComplete: nuova ? "new-password" : "current-password",
     onChange: function (e) {
@@ -2135,7 +2170,7 @@ function Blocco(p) {
     "aria-label": "Passphrase"
   }), nuova ? /*#__PURE__*/React.createElement("input", {
     className: "inp",
-    type: "password",
+    type: mostra ? "text" : "password",
     value: pw2,
     autoComplete: "new-password",
     onChange: function (e) {
@@ -2143,7 +2178,29 @@ function Blocco(p) {
     },
     placeholder: "Ripeti la passphrase",
     "aria-label": "Ripeti la passphrase"
-  }) : null, err ? /*#__PURE__*/React.createElement("div", {
+  }) : null, /*#__PURE__*/React.createElement("div", {
+    className: "btn-row",
+    style: {
+      marginTop: 2
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-sm",
+    type: "button",
+    onClick: function () {
+      setMostra(!mostra);
+    }
+  }, mostra ? "Nascondi" : "Mostra"), nuova ? /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-sm",
+    type: "button",
+    onClick: copia,
+    disabled: !pw
+  }, copiata ? "Copiata" : "Copia") : null), nuova ? /*#__PURE__*/React.createElement("p", {
+    className: "tiny",
+    style: {
+      marginTop: 8,
+      color: T.brass
+    }
+  }, "Salvala adesso, prima di continuare: nel gestore password o dove tieni le cose che non devi perdere. Non è recuperabile e non te la ricorda nessuno.") : null, err ? /*#__PURE__*/React.createElement("div", {
     className: "err"
   }, err) : null, /*#__PURE__*/React.createElement("button", {
     className: "btn btn-pri",
@@ -2169,7 +2226,53 @@ function Blocco(p) {
     style: {
       marginTop: 22
     }
-  }, nuova ? "Niente account, niente server: l'archivio vive solo in questo browser, su questo dispositivo." : "Hai dimenticato la passphrase? Non esiste un recupero. Si può ripartire da zero da Altro → Sicurezza, dopo aver sbloccato, oppure ripristinare una copia."));
+  }, nuova ? "Niente account, niente server: l'archivio vive solo in questo browser, su questo dispositivo." : "Hai dimenticato la passphrase? Non esiste un recupero: i dati sono cifrati con quella e nessuno, me compreso, può rileggerli. Si può ripristinare una copia, oppure ripartire da zero."), !nuova && p.onDistruggi ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, !azzera ? /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-sm btn-dim",
+    type: "button",
+    onClick: function () {
+      setAzzera(true);
+    }
+  }, "Riparti da zero") : /*#__PURE__*/React.createElement("div", {
+    className: "sect",
+    style: {
+      maxWidth: 380,
+      textAlign: "left"
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "fine"
+  }, "Cancella l'archivio di questo dispositivo e riparte dalla creazione. I dati cifrati vengono eliminati e non tornano: se hai una copia di sicurezza, usa invece ", /*#__PURE__*/React.createElement("em", null, "Ripristina da una copia"), "."), /*#__PURE__*/React.createElement("p", {
+    className: "fine"
+  }, "Scrivi ", /*#__PURE__*/React.createElement("strong", null, "cancella"), " per confermare."), /*#__PURE__*/React.createElement("input", {
+    className: "inp",
+    type: "text",
+    value: conferma,
+    autoComplete: "off",
+    "aria-label": "Scrivi cancella per confermare",
+    onChange: function (e) {
+      setConferma(e.target.value);
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "btn-row",
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-dim",
+    type: "button",
+    disabled: conferma.trim().toLowerCase() !== "cancella",
+    onClick: p.onDistruggi
+  }, "Cancella e riparti"), /*#__PURE__*/React.createElement("button", {
+    className: "btn btn-sm",
+    type: "button",
+    onClick: function () {
+      setAzzera(false);
+      setConferma("");
+    }
+  }, "Annulla")))) : null);
 }
 
 /* ===== 04-derive.js ===== */
@@ -5218,6 +5321,10 @@ function App() {
       modo: stato === "crea" ? "crea" : "apri",
       onInvia: stato === "crea" ? crea : apri,
       onRipristina: stato === "chiuso" ? ripristinaDaChiuso : null
+      /* Senza questo, chi dimentica la passphrase resta in un vicolo cieco:
+         l'azzeramento stava solo dietro l'archivio aperto. Chi avesse il
+         dispositivo può cancellare, non leggere, quindi non apre una falla. */,
+      onDistruggi: stato === "chiuso" ? distruggi : null
     });
   }
   var vuoto = !positions.length;
@@ -5443,5 +5550,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
     navigator.serviceWorker.register("sw.js").catch(function () {/* pazienza */});
+  });
+
+  /* Quando un service worker nuovo prende il controllo, i file in pagina sono
+     ancora quelli vecchi: senza un ricarico la versione nuova si vedrebbe solo
+     alla riapertura successiva. Si ricarica una volta sola, e non al primo
+     avvio (quando prima non c'era nessun controller). */
+  var avevaControllo = !!navigator.serviceWorker.controller;
+  var giaRicaricato = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (!avevaControllo || giaRicaricato) return;
+    giaRicaricato = true;
+    window.location.reload();
   });
 }

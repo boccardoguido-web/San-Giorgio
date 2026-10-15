@@ -397,7 +397,11 @@ function App() {
     return (
       <Blocco modo={stato === "crea" ? "crea" : "apri"}
         onInvia={stato === "crea" ? crea : apri}
-        onRipristina={stato === "chiuso" ? ripristinaDaChiuso : null} />
+        onRipristina={stato === "chiuso" ? ripristinaDaChiuso : null}
+        /* Senza questo, chi dimentica la passphrase resta in un vicolo cieco:
+           l'azzeramento stava solo dietro l'archivio aperto. Chi avesse il
+           dispositivo può cancellare, non leggere, quindi non apre una falla. */
+        onDistruggi={stato === "chiuso" ? distruggi : null} />
     );
   }
 
@@ -550,5 +554,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
     navigator.serviceWorker.register("sw.js").catch(function () { /* pazienza */ });
+  });
+
+  /* Quando un service worker nuovo prende il controllo, i file in pagina sono
+     ancora quelli vecchi: senza un ricarico la versione nuova si vedrebbe solo
+     alla riapertura successiva. Si ricarica una volta sola, e non al primo
+     avvio (quando prima non c'era nessun controller). */
+  var avevaControllo = !!navigator.serviceWorker.controller;
+  var giaRicaricato = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function () {
+    if (!avevaControllo || giaRicaricato) return;
+    giaRicaricato = true;
+    window.location.reload();
   });
 }

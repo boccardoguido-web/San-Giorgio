@@ -319,7 +319,19 @@ function Blocco(p) {
   var [pw2, setPw2] = useState("");
   var [err, setErr] = useState("");
   var [lav, setLav] = useState(false);
+  var [mostra, setMostra] = useState(false);
+  var [azzera, setAzzera] = useState(false);
+  var [conferma, setConferma] = useState("");
+  var [copiata, setCopiata] = useState(false);
   var nuova = p.modo === "crea";
+
+  function copia() {
+    if (!pw) return;
+    var fatto = function () { setCopiata(true); setTimeout(function () { setCopiata(false); }, 2500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(pw).then(fatto, function () { setMostra(true); });
+    } else { setMostra(true); }
+  }
 
   function invia(e) {
     e.preventDefault();
@@ -351,13 +363,36 @@ function Blocco(p) {
           : "Inserisci la passphrase per aprire l'archivio."}
       </p>
       <form onSubmit={invia}>
-        <input className="inp" type="password" value={pw} autoComplete={nuova ? "new-password" : "current-password"}
+        {/* Safari offre di salvare in portachiavi solo se riconosce un modulo
+            di credenziali, e per riconoscerlo vuole un campo utente. Senza
+            questo il suggerimento di password compare ma non viene salvato. */}
+        <input type="text" name="archivio" value="San Giorgio" readOnly
+          autoComplete="username" tabIndex={-1} aria-hidden="true"
+          style={{ position: "absolute", left: -9999, width: 1, height: 1, opacity: 0 }} />
+        <input className="inp" type={mostra ? "text" : "password"} value={pw}
+          autoComplete={nuova ? "new-password" : "current-password"}
           onChange={function (e) { setPw(e.target.value); }} placeholder="Passphrase"
           autoFocus aria-label="Passphrase" />
         {nuova ? (
-          <input className="inp" type="password" value={pw2} autoComplete="new-password"
+          <input className="inp" type={mostra ? "text" : "password"} value={pw2} autoComplete="new-password"
             onChange={function (e) { setPw2(e.target.value); }} placeholder="Ripeti la passphrase"
             aria-label="Ripeti la passphrase" />
+        ) : null}
+        <div className="btn-row" style={{ marginTop: 2 }}>
+          <button className="btn btn-sm" type="button" onClick={function () { setMostra(!mostra); }}>
+            {mostra ? "Nascondi" : "Mostra"}
+          </button>
+          {nuova ? (
+            <button className="btn btn-sm" type="button" onClick={copia} disabled={!pw}>
+              {copiata ? "Copiata" : "Copia"}
+            </button>
+          ) : null}
+        </div>
+        {nuova ? (
+          <p className="tiny" style={{ marginTop: 8, color: T.brass }}>
+            Salvala adesso, prima di continuare: nel gestore password o dove tieni le cose
+            che non devi perdere. Non è recuperabile e non te la ricorda nessuno.
+          </p>
         ) : null}
         {err ? <div className="err">{err}</div> : null}
         <button className="btn btn-pri" type="submit" disabled={lav}>
@@ -377,8 +412,42 @@ function Blocco(p) {
       <p className="tiny" style={{ marginTop: 22 }}>
         {nuova
           ? "Niente account, niente server: l'archivio vive solo in questo browser, su questo dispositivo."
-          : "Hai dimenticato la passphrase? Non esiste un recupero. Si può ripartire da zero da Altro → Sicurezza, dopo aver sbloccato, oppure ripristinare una copia."}
+          : "Hai dimenticato la passphrase? Non esiste un recupero: i dati sono cifrati con quella e nessuno, me compreso, può rileggerli. Si può ripristinare una copia, oppure ripartire da zero."}
       </p>
+
+      {!nuova && p.onDistruggi ? (
+        <div style={{ marginTop: 14 }}>
+          {!azzera ? (
+            <button className="btn btn-sm btn-dim" type="button"
+              onClick={function () { setAzzera(true); }}>
+              Riparti da zero
+            </button>
+          ) : (
+            <div className="sect" style={{ maxWidth: 380, textAlign: "left" }}>
+              <p className="fine">
+                Cancella l'archivio di questo dispositivo e riparte dalla creazione.
+                I dati cifrati vengono eliminati e non tornano: se hai una copia di
+                sicurezza, usa invece <em>Ripristina da una copia</em>.
+              </p>
+              <p className="fine">Scrivi <strong>cancella</strong> per confermare.</p>
+              <input className="inp" type="text" value={conferma} autoComplete="off"
+                aria-label="Scrivi cancella per confermare"
+                onChange={function (e) { setConferma(e.target.value); }} />
+              <div className="btn-row" style={{ marginTop: 10 }}>
+                <button className="btn btn-dim" type="button"
+                  disabled={conferma.trim().toLowerCase() !== "cancella"}
+                  onClick={p.onDistruggi}>
+                  Cancella e riparti
+                </button>
+                <button className="btn btn-sm" type="button"
+                  onClick={function () { setAzzera(false); setConferma(""); }}>
+                  Annulla
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
