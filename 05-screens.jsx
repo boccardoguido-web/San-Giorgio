@@ -150,7 +150,7 @@ function ScTitoli(p) {
         <div className="btn-row" style={{ marginTop: 12 }}>
           <label className="btn">
             Scegli i file
-            <input type="file" accept=".csv,.xls,.xlsx,.txt" multiple style={{ display: "none" }}
+            <input type="file" multiple style={{ display: "none" }}
               onChange={p.onHoldingsFiles} />
           </label>
         </div>
@@ -1049,7 +1049,7 @@ function ScDati(p) {
         <div className="btn-row" style={{ marginTop: 14 }}>
           <label className="btn btn-pri">
             Scegli il file
-            <input type="file" accept=".xls,.xlsx" style={{ display: "none" }} onChange={p.onFile} />
+            <input type="file" style={{ display: "none" }} onChange={p.onFile} />
           </label>
         </div>
         <div style={{ marginTop: 14, maxWidth: 220 }}>
@@ -1188,11 +1188,17 @@ function ScSicurezza(p) {
           esporre nulla. Serve anche a spostare i dati su un altro dispositivo — e a non perderli,
           perché Safari può liberare l'archivio dei siti poco usati.
         </p>
+        <p className="fine">
+          Lo stesso pulsante importa anche un file di dati iniziali in chiaro: viene cifrato
+          nell'archivio appena entra. Quel file, in chiaro, conviene cancellarlo subito dopo.
+        </p>
         <div className="btn-row">
           <button className="btn" onClick={p.esportaBackup}>Salva una copia cifrata</button>
           <label className="btn">
-            Ripristina da una copia
-            <input type="file" accept=".json,application/json" style={{ display: "none" }}
+            Ripristina o importa dati
+            {/* Senza accept: su iOS il filtro .json rende il file non
+                selezionabile nell'app File, e il selettore sembra "non vederlo". */}
+            <input type="file" style={{ display: "none" }}
               onChange={p.importaBackup} />
           </label>
         </div>

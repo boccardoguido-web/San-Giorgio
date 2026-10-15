@@ -368,7 +368,8 @@ function Blocco(p) {
         <div style={{ marginTop: 18 }}>
           <label className="btn btn-sm" style={{ display: "inline-flex" }}>
             Ripristina da una copia
-            <input type="file" accept=".json,application/json" style={{ display: "none" }}
+            {/* niente accept: vedi la nota in ScSicurezza */}
+            <input type="file" style={{ display: "none" }}
               onChange={p.onRipristina} />
           </label>
         </div>

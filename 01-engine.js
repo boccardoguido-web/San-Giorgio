@@ -441,6 +441,43 @@ function oggiISO() {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
+/* Legge un file come testo. File.text() non c'è su Safari più vecchi, quindi
+   si ripiega su FileReader: è la via che funziona sempre. */
+function leggiTesto(f) {
+  if (f && typeof f.text === "function") {
+    return f.text().catch(function () { return conFileReader(f); });
+  }
+  return conFileReader(f);
+}
+
+function conFileReader(f) {
+  return new Promise(function (ok, no) {
+    var r = new FileReader();
+    r.onload = function () { ok(String(r.result)); };
+    r.onerror = function () { no(new Error("Il file non si riesce a leggere.")); };
+    r.readAsText(f);
+  });
+}
+
+/* Interpreta il contenuto di un file di San Giorgio, con messaggi che dicono
+   cosa non torna invece di fallire in silenzio. */
+function leggiFileSG(txt, nome) {
+  var dato;
+  try {
+    dato = JSON.parse(txt);
+  } catch (e) {
+    var q = nome && /\.(xls|xlsx|csv)$/i.test(nome)
+      ? "Questo è un export del portafoglio: va caricato da Altro → Dati."
+      : "Non è un file JSON di San Giorgio.";
+    throw new Error(q);
+  }
+  if (!dato || typeof dato !== "object") throw new Error("Il file è vuoto o malformato.");
+  if (dato.sangiorgio === "dati-chiari" && dato.dati) return { tipo: "chiaro", dato: dato };
+  if (dato.sangiorgio === "backup-cifrato") return { tipo: "cifrato", dato: dato };
+  if (dato.sangiorgio) throw new Error("File di San Giorgio di tipo sconosciuto: " + dato.sangiorgio);
+  throw new Error("Non è un file di San Giorgio.");
+}
+
 /* ----------------------- lettura dell'export Fineco ----------------------- */
 
 function leggiExport(grid) {

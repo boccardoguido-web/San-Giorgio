@@ -1,4 +1,4 @@
-/* ---- 01-engine.js ---- */
+/* ===== 01-engine.js ===== */
 /* ==========================================================================
    San Giorgio — motore analitico
    Nessun dato personale in questo file: solo anagrafica degli strumenti,
@@ -972,6 +972,52 @@ function oggiISO() {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
+/* Legge un file come testo. File.text() non c'è su Safari più vecchi, quindi
+   si ripiega su FileReader: è la via che funziona sempre. */
+function leggiTesto(f) {
+  if (f && typeof f.text === "function") {
+    return f.text().catch(function () {
+      return conFileReader(f);
+    });
+  }
+  return conFileReader(f);
+}
+function conFileReader(f) {
+  return new Promise(function (ok, no) {
+    var r = new FileReader();
+    r.onload = function () {
+      ok(String(r.result));
+    };
+    r.onerror = function () {
+      no(new Error("Il file non si riesce a leggere."));
+    };
+    r.readAsText(f);
+  });
+}
+
+/* Interpreta il contenuto di un file di San Giorgio, con messaggi che dicono
+   cosa non torna invece di fallire in silenzio. */
+function leggiFileSG(txt, nome) {
+  var dato;
+  try {
+    dato = JSON.parse(txt);
+  } catch (e) {
+    var q = nome && /\.(xls|xlsx|csv)$/i.test(nome) ? "Questo è un export del portafoglio: va caricato da Altro → Dati." : "Non è un file JSON di San Giorgio.";
+    throw new Error(q);
+  }
+  if (!dato || typeof dato !== "object") throw new Error("Il file è vuoto o malformato.");
+  if (dato.sangiorgio === "dati-chiari" && dato.dati) return {
+    tipo: "chiaro",
+    dato: dato
+  };
+  if (dato.sangiorgio === "backup-cifrato") return {
+    tipo: "cifrato",
+    dato: dato
+  };
+  if (dato.sangiorgio) throw new Error("File di San Giorgio di tipo sconosciuto: " + dato.sangiorgio);
+  throw new Error("Non è un file di San Giorgio.");
+}
+
 /* ----------------------- lettura dell'export Fineco ----------------------- */
 
 function leggiExport(grid) {
@@ -1050,7 +1096,7 @@ function abbinaFondo(nomeFile, testa, fondi) {
   return max < 2 ? null : match;
 }
 
-/* ---- 02-vault.js ---- */
+/* ===== 02-vault.js ===== */
 /* ==========================================================================
    San Giorgio — cassaforte locale
    I dati non lasciano mai il dispositivo e sull'archivio del browser stanno
@@ -1375,7 +1421,7 @@ function normalizzaDati(d) {
   };
 }
 
-/* ---- 03-app.jsx ---- */
+/* ===== 03-app.jsx ===== */
 /* ==========================================================================
    San Giorgio — interfaccia
    Pensata per il pollice su iPhone e per la larghezza su iPad: barra in basso,
@@ -2114,7 +2160,6 @@ function Blocco(p) {
     }
   }, "Ripristina da una copia", /*#__PURE__*/React.createElement("input", {
     type: "file",
-    accept: ".json,application/json",
     style: {
       display: "none"
     },
@@ -2127,7 +2172,7 @@ function Blocco(p) {
   }, nuova ? "Niente account, niente server: l'archivio vive solo in questo browser, su questo dispositivo." : "Hai dimenticato la passphrase? Non esiste un recupero. Si può ripartire da zero da Altro → Sicurezza, dopo aver sbloccato, oppure ripristinare una copia."));
 }
 
-/* ---- 04-derive.js ---- */
+/* ===== 04-derive.js ===== */
 /* ==========================================================================
    San Giorgio — derivazioni
    Funzioni pure: prendono le posizioni e le opzioni, restituiscono numeri.
@@ -2822,7 +2867,7 @@ function creaSnapshot(asOf, positions, tot, aiPct, beta) {
   };
 }
 
-/* ---- 05-screens.jsx ---- */
+/* ===== 05-screens.jsx ===== */
 /* ==========================================================================
    San Giorgio — schermate
    ========================================================================== */
@@ -3029,7 +3074,6 @@ function ScTitoli(p) {
     className: "btn"
   }, "Scegli i file", /*#__PURE__*/React.createElement("input", {
     type: "file",
-    accept: ".csv,.xls,.xlsx,.txt",
     multiple: true,
     style: {
       display: "none"
@@ -4429,7 +4473,6 @@ function ScDati(p) {
     className: "btn btn-pri"
   }, "Scegli il file", /*#__PURE__*/React.createElement("input", {
     type: "file",
-    accept: ".xls,.xlsx",
     style: {
       display: "none"
     },
@@ -4581,16 +4624,17 @@ function ScSicurezza(p) {
     className: "sect"
   }, /*#__PURE__*/React.createElement("h3", null, "Copia di sicurezza"), /*#__PURE__*/React.createElement("p", {
     className: "fine"
-  }, "Il file esce già cifrato con la tua passphrase: può stare nei File o in iCloud senza esporre nulla. Serve anche a spostare i dati su un altro dispositivo — e a non perderli, perché Safari può liberare l'archivio dei siti poco usati."), /*#__PURE__*/React.createElement("div", {
+  }, "Il file esce già cifrato con la tua passphrase: può stare nei File o in iCloud senza esporre nulla. Serve anche a spostare i dati su un altro dispositivo — e a non perderli, perché Safari può liberare l'archivio dei siti poco usati."), /*#__PURE__*/React.createElement("p", {
+    className: "fine"
+  }, "Lo stesso pulsante importa anche un file di dati iniziali in chiaro: viene cifrato nell'archivio appena entra. Quel file, in chiaro, conviene cancellarlo subito dopo."), /*#__PURE__*/React.createElement("div", {
     className: "btn-row"
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn",
     onClick: p.esportaBackup
   }, "Salva una copia cifrata"), /*#__PURE__*/React.createElement("label", {
     className: "btn"
-  }, "Ripristina da una copia", /*#__PURE__*/React.createElement("input", {
+  }, "Ripristina o importa dati", /*#__PURE__*/React.createElement("input", {
     type: "file",
-    accept: ".json,application/json",
     style: {
       display: "none"
     },
@@ -4698,7 +4742,7 @@ function ScAltro(p) {
   }, "San Giorgio · analisi personale, non consulenza. I dati restano su questo dispositivo, cifrati.")));
 }
 
-/* ---- 06-root.jsx ---- */
+/* ===== 06-root.jsx ===== */
 /* ==========================================================================
    San Giorgio — radice
    Gestisce la cassaforte, il blocco automatico, il salvataggio e la
@@ -4906,6 +4950,15 @@ function App() {
     e.target.value = "";
     if (!f) return;
     setParseNote(null);
+    /* il selettore ora mostra tutti i file, quindi conviene dirlo chiaro */
+    if (/\.json$/i.test(f.name || "")) {
+      setParseNote({
+        ok: false,
+        ignoti: [],
+        msg: "Questo è un file di dati di San Giorgio, non un export: importalo da Altro → Sicurezza."
+      });
+      return;
+    }
     f.arrayBuffer().then(function (ab) {
       /* Uint8Array, non l'ArrayBuffer grezzo: con quello la lettura degli
          .xlsx, che sono archivi zip, fallisce senza dire niente. */
@@ -5068,9 +5121,11 @@ function App() {
     e.target.value = "";
     if (!f) return;
     setBackupNota(null);
-    f.text().then(function (txt) {
-      var file = JSON.parse(txt);
-      if (file.sangiorgio === "dati-chiari" && file.dati) {
+    var nome = f.name || "";
+    leggiTesto(f).then(function (txt) {
+      var letto = leggiFileSG(txt, nome);
+      var file = letto.dato;
+      if (letto.tipo === "chiaro") {
         /* seme in chiaro: entra nella cassaforte già aperta e viene cifrato */
         var d = normalizzaDati(Object.assign({}, dati, file.dati));
         setDati(d);
@@ -5081,7 +5136,6 @@ function App() {
           });
         });
       }
-      if (file.sangiorgio !== "backup-cifrato") throw new Error("Non è una copia di San Giorgio.");
       var pw = window.prompt("Passphrase della copia che stai ripristinando:");
       if (!pw) return;
       return Vault.importaCifrato(file, pw).then(function (d2) {
@@ -5104,9 +5158,12 @@ function App() {
     var f = e.target.files && e.target.files[0];
     e.target.value = "";
     if (!f) return;
-    f.text().then(function (txt) {
-      var file = JSON.parse(txt);
-      if (file.sangiorgio !== "backup-cifrato") throw new Error("Non è una copia cifrata di San Giorgio.");
+    leggiTesto(f).then(function (txt) {
+      var letto = leggiFileSG(txt, f.name || "");
+      if (letto.tipo === "chiaro") {
+        throw new Error("Questo è un file di dati in chiaro, non una copia cifrata: " + "crea prima l'archivio, poi importalo da Altro → Sicurezza.");
+      }
+      var file = letto.dato;
       var pw = window.prompt("Passphrase della copia:");
       if (!pw) return;
       return Vault.importaCifrato(file, pw).then(function (d) {
@@ -5263,7 +5320,6 @@ function App() {
         className: "btn btn-pri"
       }, "Carica l'export", /*#__PURE__*/React.createElement("input", {
         type: "file",
-        accept: ".xls,.xlsx",
         style: {
           display: "none"
         },

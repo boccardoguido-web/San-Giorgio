@@ -201,6 +201,12 @@ function App() {
     e.target.value = "";
     if (!f) return;
     setParseNote(null);
+    /* il selettore ora mostra tutti i file, quindi conviene dirlo chiaro */
+    if (/\.json$/i.test(f.name || "")) {
+      setParseNote({ ok: false, ignoti: [], msg:
+        "Questo è un file di dati di San Giorgio, non un export: importalo da Altro → Sicurezza." });
+      return;
+    }
     f.arrayBuffer().then(function (ab) {
       /* Uint8Array, non l'ArrayBuffer grezzo: con quello la lettura degli
          .xlsx, che sono archivi zip, fallisce senza dire niente. */
@@ -301,9 +307,11 @@ function App() {
     e.target.value = "";
     if (!f) return;
     setBackupNota(null);
-    f.text().then(function (txt) {
-      var file = JSON.parse(txt);
-      if (file.sangiorgio === "dati-chiari" && file.dati) {
+    var nome = f.name || "";
+    leggiTesto(f).then(function (txt) {
+      var letto = leggiFileSG(txt, nome);
+      var file = letto.dato;
+      if (letto.tipo === "chiaro") {
         /* seme in chiaro: entra nella cassaforte già aperta e viene cifrato */
         var d = normalizzaDati(Object.assign({}, dati, file.dati));
         setDati(d);
@@ -311,7 +319,6 @@ function App() {
           setBackupNota({ ok: true, t: "Dati importati e cifrati nell'archivio." });
         });
       }
-      if (file.sangiorgio !== "backup-cifrato") throw new Error("Non è una copia di San Giorgio.");
       var pw = window.prompt("Passphrase della copia che stai ripristinando:");
       if (!pw) return;
       return Vault.importaCifrato(file, pw).then(function (d2) {
@@ -330,9 +337,13 @@ function App() {
     var f = e.target.files && e.target.files[0];
     e.target.value = "";
     if (!f) return;
-    f.text().then(function (txt) {
-      var file = JSON.parse(txt);
-      if (file.sangiorgio !== "backup-cifrato") throw new Error("Non è una copia cifrata di San Giorgio.");
+    leggiTesto(f).then(function (txt) {
+      var letto = leggiFileSG(txt, f.name || "");
+      if (letto.tipo === "chiaro") {
+        throw new Error("Questo è un file di dati in chiaro, non una copia cifrata: "
+          + "crea prima l'archivio, poi importalo da Altro → Sicurezza.");
+      }
+      var file = letto.dato;
       var pw = window.prompt("Passphrase della copia:");
       if (!pw) return;
       return Vault.importaCifrato(file, pw).then(function (d) {
@@ -453,7 +464,7 @@ function App() {
               <div className="btn-row" style={{ marginTop: 12 }}>
                 <label className="btn btn-pri">
                   Carica l'export
-                  <input type="file" accept=".xls,.xlsx" style={{ display: "none" }} onChange={onFile} />
+                  <input type="file" style={{ display: "none" }} onChange={onFile} />
                 </label>
               </div>
               {parseNote && !parseNote.ok ? (
