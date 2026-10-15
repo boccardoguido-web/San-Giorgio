@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+
+# Dati personali: non devono mai finire nel repository.
+# Il sito di GitHub Pages è pubblico anche quando il repository è privato.
+*.xls
+*.xlsx
+*.csv
+san-giorgio*.json
+*-dati-iniziali.json
+*backup*.json
+locale/
+privato/
