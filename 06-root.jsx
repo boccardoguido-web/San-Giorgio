@@ -13,6 +13,7 @@ function App() {
   var [vista, setVista] = useState(null);
   var [ordine, setOrdine] = useState("mkt");
   var [sellQty, setSellQty] = useState({});
+  var [daRilevare, setDaRilevare] = useState(null);
   var [scenarioId, setScenarioId] = useState("aiBolla");
   var [tierShock, setTierShock] = useState(null);
   var [useCustom, setUseCustom] = useState(false);
@@ -215,7 +216,13 @@ function App() {
       var grid = XLSX.utils.sheet_to_json(sh, { header: 1, raw: true });
       var r = leggiExport(grid);
       var m = f.name.match(/(\d{2})[._-](\d{2})[._-](\d{4})/);
-      aggiorna({ rows: r.rows, asOf: m ? m[3] + "-" + m[2] + "-" + m[1] : oggiISO() });
+      var data = m ? m[3] + "-" + m[2] + "-" + m[1] : oggiISO();
+      aggiorna({ rows: r.rows, asOf: data });
+      /* La rilevazione si prende da sé: la serie storica serve ad alpha e beta,
+         e dipendere dal ricordarsi un secondo tocco è il modo sicuro di
+         ritrovarsi con i buchi. Si segna la data e ci pensa l'effetto sotto,
+         quando i calcoli derivati si sono aggiornati. */
+      setDaRilevare(data);
       setSellQty({});
       setParseNote({ ok: true, msg: r.rows.length + " posizioni caricate.", ignoti: r.ignoti });
     }).catch(function (err) {
@@ -285,6 +292,17 @@ function App() {
       .sort(function (a, b) { return a.date.localeCompare(b.date); });
     aggiorna({ snapshots: next });
   }, [dati.asOf, dati.snapshots, positions, tot, ai.espostoPct, rischio.beta, aggiorna]);
+
+  /* Salva la rilevazione dopo un export, ma solo quando i calcoli derivati
+     riflettono già i dati nuovi: chiamarla dentro onFile prenderebbe i valori
+     di prima, perché lo stato non si è ancora aggiornato. salvaSnapshot
+     sostituisce una rilevazione di pari data, quindi ricaricare un export
+     corretto aggiorna invece di duplicare. */
+  useEffect(function () {
+    if (!daRilevare || dati.asOf !== daRilevare || !positions.length) return;
+    salvaSnapshot();
+    setDaRilevare(null);
+  }, [daRilevare, dati.asOf, positions.length, salvaSnapshot]);
 
   var eliminaSnapshot = useCallback(function (date) {
     aggiorna({ snapshots: dati.snapshots.filter(function (x) { return x.date !== date; }) });

@@ -975,8 +975,12 @@ function ScStorico(p) {
       <div className="sect">
         <h2>Storico</h2>
         <p className="lede">
-          Ogni snapshot fissa valore, esposizione e prezzi per quota di quel giorno. È da questi che
-          nascono i rendimenti di periodo, e con essi alpha e beta.
+          Ogni rilevazione fissa valore, esposizione e prezzi per quota di quel giorno. È da queste
+          che nascono i rendimenti di periodo, e con essi alpha e beta.
+        </p>
+        <p className="fine">
+          Si prende da sé a ogni export caricato, quindi di norma qui non c'è niente da fare. Il
+          pulsante serve a rifarla a mano, se i dati sono cambiati senza un export nuovo.
         </p>
         <div className="btn-row" style={{ marginTop: 14 }}>
           <button className="btn btn-pri" onClick={p.salvaSnapshot} disabled={!p.positions.length}>

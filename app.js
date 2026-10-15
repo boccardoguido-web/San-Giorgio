@@ -4487,7 +4487,9 @@ function ScStorico(p) {
     className: "sect"
   }, /*#__PURE__*/React.createElement("h2", null, "Storico"), /*#__PURE__*/React.createElement("p", {
     className: "lede"
-  }, "Ogni snapshot fissa valore, esposizione e prezzi per quota di quel giorno. È da questi che nascono i rendimenti di periodo, e con essi alpha e beta."), /*#__PURE__*/React.createElement("div", {
+  }, "Ogni rilevazione fissa valore, esposizione e prezzi per quota di quel giorno. È da queste che nascono i rendimenti di periodo, e con essi alpha e beta."), /*#__PURE__*/React.createElement("p", {
+    className: "fine"
+  }, "Si prende da sé a ogni export caricato, quindi di norma qui non c'è niente da fare. Il pulsante serve a rifarla a mano, se i dati sono cambiati senza un export nuovo."), /*#__PURE__*/React.createElement("div", {
     className: "btn-row",
     style: {
       marginTop: 14
@@ -4861,6 +4863,7 @@ function App() {
   var [vista, setVista] = useState(null);
   var [ordine, setOrdine] = useState("mkt");
   var [sellQty, setSellQty] = useState({});
+  var [daRilevare, setDaRilevare] = useState(null);
   var [scenarioId, setScenarioId] = useState("aiBolla");
   var [tierShock, setTierShock] = useState(null);
   var [useCustom, setUseCustom] = useState(false);
@@ -5075,10 +5078,16 @@ function App() {
       });
       var r = leggiExport(grid);
       var m = f.name.match(/(\d{2})[._-](\d{2})[._-](\d{4})/);
+      var data = m ? m[3] + "-" + m[2] + "-" + m[1] : oggiISO();
       aggiorna({
         rows: r.rows,
-        asOf: m ? m[3] + "-" + m[2] + "-" + m[1] : oggiISO()
+        asOf: data
       });
+      /* La rilevazione si prende da sé: la serie storica serve ad alpha e beta,
+         e dipendere dal ricordarsi un secondo tocco è il modo sicuro di
+         ritrovarsi con i buchi. Si segna la data e ci pensa l'effetto sotto,
+         quando i calcoli derivati si sono aggiornati. */
+      setDaRilevare(data);
       setSellQty({});
       setParseNote({
         ok: true,
@@ -5192,6 +5201,17 @@ function App() {
       snapshots: next
     });
   }, [dati.asOf, dati.snapshots, positions, tot, ai.espostoPct, rischio.beta, aggiorna]);
+
+  /* Salva la rilevazione dopo un export, ma solo quando i calcoli derivati
+     riflettono già i dati nuovi: chiamarla dentro onFile prenderebbe i valori
+     di prima, perché lo stato non si è ancora aggiornato. salvaSnapshot
+     sostituisce una rilevazione di pari data, quindi ricaricare un export
+     corretto aggiorna invece di duplicare. */
+  useEffect(function () {
+    if (!daRilevare || dati.asOf !== daRilevare || !positions.length) return;
+    salvaSnapshot();
+    setDaRilevare(null);
+  }, [daRilevare, dati.asOf, positions.length, salvaSnapshot]);
   var eliminaSnapshot = useCallback(function (date) {
     aggiorna({
       snapshots: dati.snapshots.filter(function (x) {
