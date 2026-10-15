@@ -1,0 +1,16 @@
+{
+  "name": "san-giorgio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monitoraggio di portafoglio per iPhone e iPad. I dati restano sul dispositivo, cifrati.",
+  "scripts": {
+    "build": "node compila.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-react": "^7.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>San Giorgio</title>
+
+<!--
+  Regola di sicurezza del contenuto.
+  "default-src 'none'" parte dal nulla e riapre solo il minimo:
+    script-src 'self'   — solo i file di questa cartella, nessun codice da fuori
+    style-src 'self'    — nessun foglio di stile esterno, nessun font remoto
+    connect-src 'none'  — la pagina non può aprire connessioni: fetch, XHR,
+                          WebSocket e sendBeacon sono bloccati dal browser.
+                          È questa riga a rendere impossibile, non solo
+                          improbabile, che i dati escano dal dispositivo.
+    img-src 'self' data: — le immagini generate in pagina, niente pixel esterni
+  Nessuno script e nessuno stile sono scritti dentro questo file, così la
+  regola non ha bisogno di eccezioni.
+-->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'none';
+  script-src 'self';
+  style-src 'self';
+  img-src 'self' data:;
+  font-src 'self';
+  manifest-src 'self';
+  worker-src 'self';
+  connect-src 'none';
+  base-uri 'none';
+  form-action 'none';
+  frame-ancestors 'none'">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="description" content="Monitoraggio del portafoglio, sul dispositivo e cifrato.">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="San Giorgio">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#E7E9E1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11140E" media="(prefers-color-scheme: dark)">
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone/icona-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icone/icona-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="root"></div>
+<noscript>
+  <p style="font:16px/1.5 -apple-system,system-ui,sans-serif;padding:32px;max-width:36em;margin:0 auto">
+    San Giorgio ha bisogno di JavaScript: tutti i calcoli avvengono qui, nel browser,
+    perché non c'è nessun server a cui chiederli.
+  </p>
+</noscript>
+<script src="vendor.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+/* ==========================================================================
+   San Giorgio — foglio di stile
+   Tutto locale: nessun font, nessuna risorsa, nessuna chiamata di rete.
+   I colori vivono qui come variabili, così il tema scuro non richiede codice.
+   ========================================================================== */
+
+:root {
+  /* chiaro — carta salvia e inchiostro, la stessa identità del monitor */
+  --ground: #e7e9e1;
+  --card: #f5f6f1;
+  --sunk: #dde0d6;
+  --ink: #191d17;
+  --ink2: #3d423a;
+  --muted: #6c7167;
+  --rule: #c7cbbf;
+  --rule-soft: #d6dacd;
+
+  --red: #b23a2c;
+  --green: #2e6b4f;
+  --brass: #a8811f;
+  --brass-dark: #8c6b14;
+  --cobalt: #2b4e86;
+  --clay: #a65a3c;
+  --teal: #3e7a78;
+  --slate: #8a8f82;
+  --plum: #6b4e8f;
+
+  --on-fill: #ffffff;
+  --bar-bg: rgba(43, 78, 134, 0.26);
+  --press: rgba(25, 29, 23, 0.06);
+
+  /* misure */
+  --gutter: 16px;
+  --tap: 44px;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  /* tipografia */
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #11140e;
+    --card: #1a1e15;
+    --sunk: #0b0d07;
+    --ink: #e6e9de;
+    --ink2: #bfc4b6;
+    --muted: #8d9384;
+    --rule: #2e3426;
+    --rule-soft: #242a1d;
+
+    --red: #e0705c;
+    --green: #58a982;
+    --brass: #cfa73c;
+    --brass-dark: #9d7c22;
+    --cobalt: #7fa3e0;
+    --clay: #d4866a;
+    --teal: #63aeab;
+    --slate: #949a8b;
+    --plum: #a98bcb;
+
+    --on-fill: #11140e;
+    --bar-bg: rgba(127, 163, 224, 0.22);
+    --press: rgba(230, 233, 222, 0.08);
+  }
+}
+
+/* ------------------------------- di base ---------------------------------- */
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 16px;
+  line-height: 1.45;
+  /* niente rimbalzo dell'intera pagina: dentro un'app a schede è disorientante */
+  overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* il doppio tap non deve zoomare: ogni controllo è già grande a sufficienza */
+button, a, label, summary, input, select { touch-action: manipulation; }
+
+/* il testo resta selezionabile dove serve leggerlo, non nei comandi */
+button, .tabbar, .strip { -webkit-user-select: none; user-select: none; }
+
+:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ---------------------------- tipografia ---------------------------------- */
+
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+/* Maiuscoletto riservato alle intestazioni di colonna delle tabelle dati,
+   dove è una convenzione che aiuta a leggere. Non sopra i titoli. */
+.col {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; margin: 0; }
+h2 { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; margin: 0 0 6px; }
+h3 { font-size: 14px; font-weight: 650; margin: 0 0 6px; }
+p  { margin: 0 0 10px; }
+
+.lede { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 62ch; }
+.fine { color: var(--muted); font-size: 12.5px; line-height: 1.65; max-width: 68ch; }
+.tiny { color: var(--muted); font-size: 11.5px; line-height: 1.55; }
+
+/* --------------------------- impaginazione -------------------------------- */
+
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 0 var(--gutter);
+  /* spazio per la barra inferiore e per l'indicatore di home */
+  padding-bottom: calc(var(--tap) + 30px + env(safe-area-inset-bottom));
+}
+
+.wrap { max-width: 1000px; margin: 0 auto; width: 100%; }
+
+.sect { padding: 18px 0; border-top: 1px solid var(--rule-soft); }
+.sect:first-child { border-top: 0; }
+
+/* due colonne solo dove la larghezza c'è davvero */
+.duo { display: grid; gap: 22px; }
+@media (min-width: 760px) {
+  .duo { grid-template-columns: 1fr 1fr; gap: 34px; }
+  :root { --gutter: 24px; }
+}
+
+/* ------------------------------ testata ----------------------------------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--ground);
+  padding: calc(env(safe-area-inset-top) + 10px) var(--gutter) 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.top-in { max-width: 1000px; margin: 0 auto; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.top-val { font-size: 26px; font-weight: 650; }
+.top-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.top-right { text-align: right; }
+.top-delta { font-size: 16px; font-weight: 600; }
+
+/* --------------------------- barra inferiore ------------------------------ */
+
+.tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 30;
+  display: flex;
+  background: var(--card);
+  border-top: 1px solid var(--rule);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabbar-in { display: flex; width: 100%; max-width: 1000px; margin: 0 auto; }
+.tab {
+  flex: 1;
+  min-height: var(--tap);
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--ui);
+  font-size: 10.5px;
+  font-weight: 560;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px 8px;
+  cursor: pointer;
+}
+.tab[aria-current="page"] { color: var(--ink); }
+.tab svg { display: block; }
+.tab:active { background: var(--press); }
+
+/* ------------------------------ comandi ----------------------------------- */
+
+.btn {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn:active { background: var(--press); }
+.btn-pri { background: var(--ink); border-color: var(--ink); color: var(--ground); }
+.btn-dim { color: var(--red); }
+.btn-sm { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--ground); }
+.chip-ai { border-color: var(--brass); }
+
+/* striscia di chip scorrevole: su iPhone otto scenari non ci stanno */
+.rail {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px var(--gutter) 10px;
+  margin: 0 calc(var(--gutter) * -1);
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+.inp {
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 16px; /* 16px o iOS zooma al focus */
+  width: 100%;
+}
+.inp.num { font-family: var(--mono); }
+.inp-sm { min-height: 36px; font-size: 16px; padding: 0 8px; }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--tap);
+  background: none;
+  margin: 0;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sunk);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px; height: 26px;
+  margin-top: -11px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--cobalt); }
+
+/* ------------------------------ schede ------------------------------------ */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.card-note { border-left: 3px solid var(--brass); }
+.card-warn { border-style: dashed; border-color: var(--brass); }
+
+/* dati di sintesi: griglia che si adatta, non una fila che sborda */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px 18px; }
+.stat-lab { font-size: 11px; color: var(--muted); font-weight: 500; }
+.stat-val { font-size: 19px; font-weight: 600; margin-top: 1px; }
+.stat-sub { font-size: 12px; color: var(--muted); }
+
+/* ------------------------------ elenchi ----------------------------------- */
+
+.rows { border-top: 1px solid var(--rule-soft); }
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--rule-soft);
+  min-height: var(--tap);
+}
+.row-main { flex: 1; min-width: 0; }
+.row-t { font-size: 15px; font-weight: 600; }
+.row-s { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-n { text-align: right; flex: 0 0 auto; }
+.row-tap { cursor: pointer; }
+.row-tap:active { background: var(--press); }
+
+/* voce di menu con freccia, per la scheda Altro */
+.nav-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; min-height: 52px;
+  padding: 0 2px;
+  border: 0; border-bottom: 1px solid var(--rule-soft);
+  background: none; color: var(--ink);
+  font-family: var(--ui); font-size: 16px; text-align: left;
+  cursor: pointer;
+}
+.nav-row:active { background: var(--press); }
+.nav-row .chev { color: var(--muted); margin-left: auto; }
+
+/* tabella vera, solo da tablet in su */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--rule); }
+.tbl th:first-child { text-align: left; padding-left: 0; }
+.tbl td { text-align: right; padding: 9px 8px; border-bottom: 1px solid var(--rule-soft); font-size: 14px; }
+.tbl td:first-child { text-align: left; padding-left: 0; }
+
+/* barre orizzontali */
+.bar { height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
+.bar > i { display: block; height: 100%; }
+.bar-mid { position: relative; height: 16px; background: var(--sunk); border-radius: 3px; }
+.bar-mid .zero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--rule); }
+.bar-mid > i { position: absolute; top: 2px; bottom: 2px; border-radius: 2px; }
+
+/* ------------------------------- avvisi ----------------------------------- */
+
+.alert { display: flex; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--rule-soft); }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex: 0 0 auto; }
+.alert-t { font-size: 14px; font-weight: 600; }
+.alert-d { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-top: 2px; }
+
+/* --------------------------- schermata di blocco -------------------------- */
+
+.lock {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 var(--gutter);
+  padding-top: env(safe-area-inset-top);
+  max-width: 420px; margin: 0 auto;
+}
+.lock h1 { font-size: 24px; margin-bottom: 4px; }
+.lock form { display: grid; gap: 12px; margin-top: 22px; }
+.lock .err { color: var(--red); font-size: 13.5px; }
+.lock-mark { margin-bottom: 20px; }
+
+/* ------------------------------- pannello --------------------------------- */
+
+/* vista spinta dentro la scheda Altro */
+.sheet-head {
+  display: flex; align-items: center; gap: 4px;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 6px var(--gutter) 10px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: sticky; top: 0; z-index: 10;
+  background: var(--ground);
+}
+.back {
+  min-height: var(--tap); display: inline-flex; align-items: center; gap: 4px;
+  border: 0; background: none; color: var(--cobalt);
+  font-family: var(--ui); font-size: 16px; padding: 0 8px 0 0; cursor: pointer;
+}
+
+/* ------------------------------- movimento -------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { animation: rise .22s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+/* la lista dei titoli può essere lunghissima: via le ombre, resta scattante */
+.strip { display: block; width: 100%; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 9px; border-radius: 14px;
+  border: 1px solid var(--rule); font-size: 12px;
+}
+.sep { color: var(--rule); }
+.hid { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
