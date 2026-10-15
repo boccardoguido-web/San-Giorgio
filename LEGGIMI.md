@@ -23,8 +23,20 @@ di rado può farlo dopo qualche settimana.
 
 ### Ricompilare dopo una modifica
 
-I file `app.js` e `vendor.js` sono generati. Le sorgenti leggibili stanno in
-`src/`.
+I file `app.js` e `vendor.js` sono generati. Le sorgenti leggibili sono i sei
+file numerati, compilati in quest'ordine:
+
+| file | cosa contiene |
+|---|---|
+| `01-engine.js` | tavolozza, anagrafica strumenti, scenari, lettura degli export |
+| `02-vault.js` | archivio cifrato su IndexedDB |
+| `03-app.jsx` | componenti di base e grafici |
+| `04-derive.js` | tutti i calcoli derivati dal portafoglio |
+| `05-screens.jsx` | le schermate |
+| `06-root.jsx` | `App()`: ciclo di vita, blocco, navigazione |
+
+Stanno nella radice e non in una cartella perché il caricamento via web di
+GitHub non gestisce le sottocartelle.
 
 ```
 npm install
